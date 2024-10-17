@@ -230,6 +230,20 @@ public class Grid
     }
 
     // Q: when do you choose to update members of the class vs returning values?
+    /// <summary>
+    /// This method will generate a list of regions, one per target.
+    /// </summary>
+    /// <param name="rowsByDist"></param>
+    /// <param name="gridCells"></param>
+    /// <returns>List of regions that can be iterated over when solving the puzzle</returns>
+    /// <remarks>
+    /// This method creates regions without considering nearby regions. In the initial implementation
+    /// the regions are filling in the entire grid. Also there is no consideration of whether a cell will be 
+    /// orphaned (not connected to a region). It needs work but I am going to leave it for now. I am 
+    /// going to focus on functionality to import grid defintions, then solving those grids. After that
+    /// I will circle back and add the functionality to create my own grids.
+    /// </remarks>
+
     public List<Region> GenerateRegions(List<int> rowsByDist, List<List<Cell>> gridCells)
     {
         // Random size per region
@@ -248,7 +262,7 @@ public class Grid
             Region region = GenerateRegion(targetCell, gridCells);
             regions.Add(region);
 
-            // Update the grid with the region IDs, the approach to this needs to be reconsidered
+            // Update the grid with the region IDs, the approach to this needs to be reconsidered because it is updating the class member and is not consistent
             foreach (Cell cell in region.Cells)
             {
                 gridCells[cell.GetCoordinate().GetRow()][cell.GetCoordinate().GetCol()].SetRegionId(targetCell.GetRegionId());
