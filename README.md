@@ -1,4 +1,4 @@
-This is a console app that I am creating to practicie code writing but here are the intentions with the code.
+This is a console app that I am creating to practicie writing code but here are the intentions with the code.
 1. Take a grid as input and walk through a hueristic approach to solving the puzzle
 2. Use OpenCV to scan a screenshot and generate a grid from a screenshot
 3. Generate a random grid that one can solve for fun
