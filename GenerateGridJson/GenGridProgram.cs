@@ -22,7 +22,7 @@ class Program
     {
         Console.WriteLine("Reading CSV and converting to JSON...");
 
-        string csvPath = "c.csv";
+        string csvPath = "Game From 2024-10-21.csv";
         string jsonOutput = ConvertCsvToJson(csvPath);
 
         // Write JSON output to grid.json file
