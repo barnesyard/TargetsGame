@@ -27,7 +27,7 @@ class Program
         {
             Console.WriteLine("Failed to load region IDs from JSON file. Generating a random grid.");
             Random theRandom = new Random();
-            int gridSize = theRandom.Next(7, maxGridSize + 1);
+            int gridSize = theRandom.Next(7, maxGridSize);
             Grid theGrid = new(gridSize);
             theGrid.GenerateGrid();
 
