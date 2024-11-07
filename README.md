@@ -1,7 +1,7 @@
 # Summary 
 This is a console app that I am creating to practice writing code but here are the intentions with the code. The idea is to use the LinkedIn Queens game as source of inspiration. With that game in mind I want to: 
 1. Use OpenCV to scan a screenshot and generate a grid from a screenshot
-1. Generate a random grid that one can solve for fun
+1. Or instead, generate a random grid
 1. Use backtrack algorithm to solve the grid
 1. Use a hueristic approach to solving the puzzle
 1. Comppare the 2 solve approaches to see how fast a hueristic can be
