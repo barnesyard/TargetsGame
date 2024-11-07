@@ -11,10 +11,14 @@ class Program
 {
     static void Main()
     {
-        // Read region IDs from JSON file, this is temporary, eventually we will have a prompt
-        string jsonFilePath = "grid.json";
-        int maxGridSize = 10;
-        List<List<int>>? regionIds = Grid.GetRegionIdsFromJson(jsonFilePath, maxGridSize);
+        // TODO: use command line args to load a file
+        int maxGridSize = 11;
+        string imageFilePath = "./img/Screenshot 2024-10-21 092751.png";
+        List<List<int>>? regionIds = GridImporter.ImportFromImage(imageFilePath);
+
+        // Read region IDs from JSON file using GridImporter
+        // string jsonFilePath = "grid.json";
+        // List<List<int>>? regionIds = GridImporter.ImportFromJson(jsonFilePath, maxGridSize);
 
         if (regionIds != null)
         {
@@ -27,7 +31,7 @@ class Program
         {
             Console.WriteLine("Failed to load region IDs from JSON file. Generating a random grid.");
             Random theRandom = new Random();
-            int gridSize = theRandom.Next(7, maxGridSize + 1);
+            int gridSize = theRandom.Next(7, maxGridSize);
             Grid theGrid = new(gridSize);
             theGrid.GenerateGrid();
 
@@ -589,6 +593,7 @@ public static void Main()
 }
 
 */
+
 
 
 
