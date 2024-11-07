@@ -12,22 +12,27 @@ While working on this project I wanted to use the OpenCV library to learn more a
 
 ##  Import a screenshot
 The first step is import the screenshot. This is what it looked like for me:
+
 ![ImportedScreenShot](https://github.com/user-attachments/assets/9c358b3b-01c0-4038-b529-a8b7dc71c0cc)
 
 ##  Convert the screenshot to grayscale
 This is an intermediary step that you need to do before you can convert it to a binary image:
+
 ![GrayedScreenShot](https://github.com/user-attachments/assets/b765eaab-5a50-4c26-91a3-3788b2535c9b)
 
 ##  Convert the grayscale image to a binary image
 OpenCV finds "contours" (or edges or boundaries) in the image using a binary image. A binary image has pixels that are on or off. The contours are found by seeking the "on" pixels or white pixels.
+
 ![BinaryInverseScreenShot](https://github.com/user-attachments/assets/e7b1fef0-52f6-42ba-a0e3-87bd78f2e638)
 
 ##  Find contours in the image
 The OpenCV functionality to find contours has many options. I found a "tree" of contours. For this screen shot that had the outer bounding box (shown in blue in this image) and child contours for each cell in the grid. In this example there were 50 contours, the outer box and the 49 boxes for the 7x7 cells in the grid.
+
 ![ContoursScreenShot](https://github.com/user-attachments/assets/4d73c037-b2fa-4c0c-a425-5f96f3b29bbe)
 
 ## Use a mask to extract color of a cell
-Create a mask as shown in the image below. That mask is used with the original screenshot to find the mean color value of all the unmasked pixels.
+Create a mask as shown in the image below. That mask is used with the original screenshot to find the mean color value of all the unmasked pixels. I used some math to find a region as I looped over the entire grid of cells.
+
 ![MaskScreenShot](https://github.com/user-attachments/assets/c55d4a5c-1fea-4150-9c79-b7ef4181f72f)
 
 
