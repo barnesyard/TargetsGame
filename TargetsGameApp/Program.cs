@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.Dynamic;
 using System.Numerics;
+using System.Text.Json;
 
 namespace TargetsGameApp;
 
@@ -10,25 +11,35 @@ class Program
 {
     static void Main()
     {
-        // First randomly specify the size of the grid
-        Random theRandom = new Random();
-        int gridSize = theRandom.Next(7, 11);
-        Console.WriteLine("Creating a grid of size {0}", gridSize);
+        // Read region IDs from JSON file, this is temporary, eventually we will have a prompt
+        string jsonFilePath = "grid.json";
+        int maxGridSize = 10;
+        List<List<int>>? regionIds = Grid.GetRegionIdsFromJson(jsonFilePath, maxGridSize);
 
-        Grid theGrid = new(gridSize);
-        theGrid.GenerateGrid();
+        if (regionIds != null)
+        {
+            Grid theGrid = new(regionIds);
 
-        // Enable Unicode output
-        Console.OutputEncoding = System.Text.Encoding.UTF8;
+            // Write the grid to the screen
+            theGrid.WriteGrid();
+        }
+        else
+        {
+            Console.WriteLine("Failed to load region IDs from JSON file. Generating a random grid.");
+            Random theRandom = new Random();
+            int gridSize = theRandom.Next(7, maxGridSize + 1);
+            Grid theGrid = new(gridSize);
+            theGrid.GenerateGrid();
 
-
+            theGrid.WriteGrid();
+        }
     }
 }
 
-public class Coordinate
+public struct Coordinate
 {
-    private int Row { get; set; }
-    private int Col { get; set; }
+    public int Row { get; }
+    public int Col { get; }
 
     public Coordinate(int row, int col)
     {
@@ -40,23 +51,6 @@ public class Coordinate
     public Coordinate Right() => new Coordinate(Row, Col + 1);
     public Coordinate Down() => new Coordinate(Row + 1, Col);
     public Coordinate Left() => new Coordinate(Row, Col - 1);
-
-    public void SetRow(int row)
-    {
-        this.Row = row;
-    }
-    public void SetCol(int col)
-    {
-        this.Col = col;
-    }
-    public int GetRow()
-    {
-        return this.Row;
-    }
-    public int GetCol()
-    {
-        return this.Col;
-    }
 }
 
 public class Cell
@@ -107,7 +101,7 @@ public class Cell
 
     public static Cell operator +(Cell cell, Coordinate coord)
     {
-        return new Cell(cell.Coordinate.GetRow() + coord.GetRow(), cell.Coordinate.GetCol() + coord.GetCol());
+        return new Cell(cell.Coordinate.Row + coord.Row, cell.Coordinate.Col + coord.Col);
     }
 }
 
@@ -149,6 +143,27 @@ public class Grid
         }
     }
 
+    // New constructor
+    public Grid(List<List<int>> regionIds)
+    {
+        this.GridSize = regionIds.Count;
+        this.GridCells = [];
+        this.TargetLocations = [];
+
+        for (int i = 0; i < this.GridSize; i++)
+        {
+            this.TargetLocations.Add(-1); // Initialize with -1, while solving we can use this value to mark cells with targets
+            this.GridCells.Add([]);
+            for (int j = 0; j < this.GridSize; j++)
+            {
+                Cell tempCell = new(i, j);
+                tempCell.SetRegionId(regionIds[i][j]);
+                tempCell.SetIsTarget(false);
+                this.GridCells[i].Add(tempCell);
+            }
+        }
+    }
+
     private void WritePositions(int[] positions, ConsoleColor color)
     {
         // Writing in different colors so track the original color
@@ -163,7 +178,7 @@ public class Grid
         Console.ForegroundColor = originalForegroundColor;
     }
 
-    private void WriteGrid()
+    public void WriteGrid()
     {
         // Create an array of ConsoleColor values that can be used for the regions
         ConsoleColor[] regionColors = [
@@ -182,22 +197,32 @@ public class Grid
         Console.OutputEncoding = System.Text.Encoding.UTF8;
 
         ConsoleColor originalForegroundColor = Console.ForegroundColor;
-        for (int i = 0; i < GridSize; i++)
+        try
         {
-            for (int j = 0; j < GridSize; j++)
+            for (int i = 0; i < GridSize; i++)
             {
-                // Set the color based on the region ID
-                if (this.GridCells[i][j].GetRegionId() != -1)
+                for (int j = 0; j < GridSize; j++)
                 {
-                    Console.ForegroundColor = regionColors[this.GridCells[i][j].GetRegionId()];
+                    // Set the color based on the region ID
+                    if (this.GridCells[i][j].GetRegionId() != -1)
+                    {
+                        Console.ForegroundColor = regionColors[this.GridCells[i][j].GetRegionId()];
+                    }
+                    Console.Write(this.GridCells[i][j].GetIsTarget() ? '\u233e' : '\u2610');
+                    Console.ForegroundColor = originalForegroundColor;
                 }
-                Console.Write(this.GridCells[i][j].GetIsTarget() ? '\u233e' : '\u2610');
-                Console.ForegroundColor = originalForegroundColor;
+                Console.WriteLine();
             }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error writing grid: {ex.Message}");
+        }
+        finally
+        {
+            Console.ForegroundColor = originalForegroundColor;
             Console.WriteLine();
         }
-        Console.ForegroundColor = originalForegroundColor;
-        Console.WriteLine();
     }
 
     public void GenerateGrid()
@@ -265,7 +290,7 @@ public class Grid
             // Update the grid with the region IDs, the approach to this needs to be reconsidered because it is updating the class member and is not consistent
             foreach (Cell cell in region.Cells)
             {
-                gridCells[cell.GetCoordinate().GetRow()][cell.GetCoordinate().GetCol()].SetRegionId(targetCell.GetRegionId());
+                gridCells[cell.GetCoordinate().Row][cell.GetCoordinate().Col].SetRegionId(targetCell.GetRegionId());
             }
 
             this.WriteGrid();
@@ -324,8 +349,8 @@ public class Grid
 
         foreach (Coordinate dir in directions)
         {
-            Cell adjacentCell = new(dir.GetRow(), dir.GetCol());
-            if (IsValidCell(adjacentCell) && this.GridCells[adjacentCell.GetCoordinate().GetRow()][adjacentCell.GetCoordinate().GetCol()].GetRegionId() == -1)
+            Cell adjacentCell = new(dir.Row, dir.Col);
+            if (IsValidCell(adjacentCell) && this.GridCells[adjacentCell.GetCoordinate().Row][adjacentCell.GetCoordinate().Col].GetRegionId() == -1)
             {
                 adjacentCells.Add(adjacentCell);
             }
@@ -337,8 +362,8 @@ public class Grid
     private bool IsValidCell(Cell cell)
     {
         var coord = cell.GetCoordinate();
-        return coord.GetRow() >= 0 && coord.GetRow() < GridSize &&
-               coord.GetCol() >= 0 && coord.GetCol() < GridSize;
+        return coord.Row >= 0 && coord.Row < GridSize &&
+               coord.Col >= 0 && coord.Col < GridSize;
     }
 
     /// <summary>
@@ -452,12 +477,37 @@ public class Grid
         return targetColumns;
     }
 
+    /// <summary>
+    /// This method will read the region IDs from a JSON file and return them as 
+    /// </summary>
+    /// <param name="filePath">path to the JSON file</param>
+    /// <param name="maxGridSize">the maximum size of the grid</param>
+    /// <returns>a 2d list of lists of ints, the first dimension is the row, the second dimension is the column</returns>
+    public static List<List<int>>? GetRegionIdsFromJson(string filePath, int maxGridSize)
+    {
+        try
+        {
+            string jsonString = File.ReadAllText(filePath);
+            List<List<int>>? regionIds = JsonSerializer.Deserialize<List<List<int>>>(jsonString);
+            if (regionIds?.Count > maxGridSize)
+            {
+                throw new Exception("Grid size is greater than allowed size of " + maxGridSize);
+            }
+            return regionIds;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error reading JSON file: {ex.Message}");
+            return null;
+        }
+    }
+
 }
 
 //Below here is AI generated code for solving this puzzle
 /*
 
-Sure! Here is a basic implementation of a Star Battle puzzle solver in C#.
+basic implementation of a Star Battle puzzle solver in C#.
 This example uses a backtracking algorithm to solve the puzzle:
 
 using System;
@@ -539,6 +589,7 @@ public static void Main()
 }
 
 */
+
 
 
 
