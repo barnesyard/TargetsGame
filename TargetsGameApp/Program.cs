@@ -59,9 +59,16 @@ public struct Coordinate
 
 public class Cell
 {
-    private int RegionId { get; set; }
-    private Coordinate Coordinate { get; set; }
-    private bool IsTarget { get; set; }
+    public int RegionId { get; set; }
+    public Coordinate Coordinate { get; set; }
+
+    // I am doing this to explore access with properties and fields
+    private bool _isTarget;
+    public bool IsTarget
+    {
+        get { return _isTarget; }
+        set { _isTarget = value; } //This is no different than your basic property but this is where extra functionality can be added
+    }
 
     public Cell()
     {
@@ -77,30 +84,9 @@ public class Cell
         this.RegionId = -1;
     }
 
-    public void SetCoordinate(int row, int col)
-    {
-        this.Coordinate = new Coordinate(row, col);
-    }
-
-    public void SetIsTarget(bool isTarget)
-    {
-        this.IsTarget = isTarget;
-    }
-    public void SetRegionId(int regionId)
-    {
-        this.RegionId = regionId;
-    }
     public Coordinate GetCoordinate()
     {
         return this.Coordinate;
-    }
-    public bool GetIsTarget()
-    {
-        return this.IsTarget;
-    }
-    public int GetRegionId()
-    {
-        return this.RegionId;
     }
 
     public static Cell operator +(Cell cell, Coordinate coord)
@@ -110,13 +96,17 @@ public class Cell
 }
 
 // A region refers to a set of cells that are orthoganally adjacent 
-// the number of regions is equal to the GridSize, one region per target
+// the number of regions in a grid is equal to the GridSize, one region per target
 public class Region
 {
     public List<Cell> Cells { get; private set; } = new List<Cell>();
+    public int Id { get; private set; } = -1;
 
     public void Add(Cell cell)
     {
+        if( this.Id == -1 ) this.Id = cell.RegionId; // set the Id if it has not been set
+        // This exception should only be thrown if there is problem with the logic in the code, it won't happen through usage
+        if(this.Id != cell.RegionId) throw new InvalidOperationException("Cell does not have the same RegionId as the region."); 
         Cells.Add(cell);
     }
 }
@@ -124,15 +114,16 @@ public class Region
 public class Grid
 {
     private int GridSize { get; }
-    private List<int> TargetLocations { get; set; }
+    private List<int> TargetLocations { get; set; } = [];
 
-    public List<List<Cell>> GridCells { get; private set; }
+    public List<List<Cell>> GridCells { get; private set; } = [];
+
+    public List<Region> GridRegions { get; private set; } = [];
 
     public Grid(int size)
     {
         this.GridSize = size;
-        this.GridCells = [];
-        this.TargetLocations = [];
+  
         //initialize target locations values to 0 thru GridSize (which is a totally invalid arrangement)
         for (int i = 0; i < this.GridSize; i++)
         {
@@ -147,12 +138,13 @@ public class Grid
         }
     }
 
-    // New constructor
+    /// <summary>
+    /// Constructor that takes an imported list of region IDs and fills out the data in a grid object
+    /// </summary>
+    /// <param name="regionIds"></param>
     public Grid(List<List<int>> regionIds)
     {
-        this.GridSize = regionIds.Count;
-        this.GridCells = [];
-        this.TargetLocations = [];
+        this.GridSize = regionIds.Count; // the size is the count of rows in the regionIds because the grid is square
 
         for (int i = 0; i < this.GridSize; i++)
         {
@@ -161,11 +153,23 @@ public class Grid
             for (int j = 0; j < this.GridSize; j++)
             {
                 Cell tempCell = new(i, j);
-                tempCell.SetRegionId(regionIds[i][j]);
-                tempCell.SetIsTarget(false);
+                tempCell.RegionId = regionIds[i][j];
+                // tempCell.RegionId = regionIds[i][j];
+                tempCell.IsTarget = false;
                 this.GridCells[i].Add(tempCell);
+
+                // Check if the region already exists
+                Region? existingRegion = this.GridRegions.FirstOrDefault(rg => rg.Id == regionIds[i][j]);
+                if (existingRegion == null)
+                {
+                    existingRegion = new Region();
+                    this.GridRegions.Add(existingRegion);
+                }
+                existingRegion.Add(tempCell); // Add the cell to the corresponding region
+
             }
         }
+
     }
 
     private void WritePositions(int[] positions, ConsoleColor color)
@@ -208,11 +212,11 @@ public class Grid
                 for (int j = 0; j < GridSize; j++)
                 {
                     // Set the color based on the region ID
-                    if (this.GridCells[i][j].GetRegionId() != -1)
+                    if (this.GridCells[i][j].RegionId != -1)
                     {
-                        Console.ForegroundColor = regionColors[this.GridCells[i][j].GetRegionId()];
+                        Console.ForegroundColor = regionColors[this.GridCells[i][j].RegionId];
                     }
-                    Console.Write(this.GridCells[i][j].GetIsTarget() ? '\u233e' : '\u2610');
+                    Console.Write(this.GridCells[i][j].IsTarget ? '\u233e' : '\u2610');
                     Console.ForegroundColor = originalForegroundColor;
                 }
                 Console.WriteLine();
@@ -247,8 +251,8 @@ public class Grid
         // update grid with target locations and set region IDs based on dist from center
         for (int i = 0; i < GridSize; i++)
         {
-            this.GridCells[rowsByDist[i]][this.TargetLocations[rowsByDist[i]]].SetIsTarget(true);
-            this.GridCells[rowsByDist[i]][this.TargetLocations[rowsByDist[i]]].SetRegionId(i);
+            this.GridCells[rowsByDist[i]][this.TargetLocations[rowsByDist[i]]].IsTarget = true;
+            this.GridCells[rowsByDist[i]][this.TargetLocations[rowsByDist[i]]].RegionId = i;
         }
 
         // Write the grid to the screen
@@ -294,7 +298,7 @@ public class Grid
             // Update the grid with the region IDs, the approach to this needs to be reconsidered because it is updating the class member and is not consistent
             foreach (Cell cell in region.Cells)
             {
-                gridCells[cell.GetCoordinate().Row][cell.GetCoordinate().Col].SetRegionId(targetCell.GetRegionId());
+                gridCells[cell.GetCoordinate().Row][cell.GetCoordinate().Col].RegionId = targetCell.RegionId;
             }
 
             this.WriteGrid();
@@ -332,7 +336,7 @@ public class Grid
             // Select a random cell from the list of VALID adjacent cells
             int cellIndex = random.Next(adjacentCells.Count);
             Cell selectedCell = adjacentCells[cellIndex];
-            selectedCell.SetRegionId(targetCell.GetRegionId());
+            selectedCell.RegionId = targetCell.RegionId;
             region.Add(selectedCell);
 
             // Remove the selected cell from the list of valid adjacent cells since it has been added to the region 
@@ -354,7 +358,7 @@ public class Grid
         foreach (Coordinate dir in directions)
         {
             Cell adjacentCell = new(dir.Row, dir.Col);
-            if (IsValidCell(adjacentCell) && this.GridCells[adjacentCell.GetCoordinate().Row][adjacentCell.GetCoordinate().Col].GetRegionId() == -1)
+            if (IsValidCell(adjacentCell) && this.GridCells[adjacentCell.GetCoordinate().Row][adjacentCell.GetCoordinate().Col].RegionId == -1)
             {
                 adjacentCells.Add(adjacentCell);
             }
@@ -480,32 +484,6 @@ public class Grid
 
         return targetColumns;
     }
-
-    /// <summary>
-    /// This method will read the region IDs from a JSON file and return them as 
-    /// </summary>
-    /// <param name="filePath">path to the JSON file</param>
-    /// <param name="maxGridSize">the maximum size of the grid</param>
-    /// <returns>a 2d list of lists of ints, the first dimension is the row, the second dimension is the column</returns>
-    public static List<List<int>>? GetRegionIdsFromJson(string filePath, int maxGridSize)
-    {
-        try
-        {
-            string jsonString = File.ReadAllText(filePath);
-            List<List<int>>? regionIds = JsonSerializer.Deserialize<List<List<int>>>(jsonString);
-            if (regionIds?.Count > maxGridSize)
-            {
-                throw new Exception("Grid size is greater than allowed size of " + maxGridSize);
-            }
-            return regionIds;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error reading JSON file: {ex.Message}");
-            return null;
-        }
-    }
-
 }
 
 //Below here is AI generated code for solving this puzzle
