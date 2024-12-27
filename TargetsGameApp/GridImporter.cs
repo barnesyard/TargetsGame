@@ -9,6 +9,12 @@ namespace TargetsGameApp;
 
 public class GridImporter
 {
+    /// <summary>
+    /// This method will read the region IDs from a JSON file 
+    /// </summary>
+    /// <param name="filePath">path to the JSON file</param>
+    /// <param name="maxGridSize">the maximum size of the grid</param>
+    /// <returns>a 2d list of lists of ints, the first dimension is the row, the second dimension is the column</returns>
     public static List<List<int>>? ImportFromJson(string filePath, int maxGridSize)
     {
         try
