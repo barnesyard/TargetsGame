@@ -6,7 +6,7 @@ namespace TargetsGameApp
     public class Grid
     {
         public int GridSize { get; }
-        private List<int> TargetLocations { get; set; } = [];
+        public List<int> TargetLocations { get; set; } = [];
 
         public List<List<Cell>> GridCells { get; private set; } = [];
 
@@ -61,10 +61,7 @@ namespace TargetsGameApp
 
                 }
             }
-
         }
-
-
 
         private void WritePositions(int[] positions, ConsoleColor color)
         {

@@ -71,12 +71,11 @@ public struct Coordinate
         return false;
     }
 
+    // This is needed when you override the Equals operator.
     public override int GetHashCode()
     {
         return HashCode.Combine(Row, Col);
     }
-
-
 
     public Coordinate Up() => new Coordinate(Row - 1, Col);
     public Coordinate UpRight() => new Coordinate(Row - 1, Col + 1);
@@ -182,102 +181,9 @@ public class Region
 
     public void Add(Cell cell)
     {
-        if (this.Id == -1) this.Id = cell.RegionId; // set the Id if it has not been set
+        if (this.Id == -1) this.Id = cell.RegionId; // a value of -1 indicates the region was newly created with no cells yet
         // This exception should only be thrown if there is problem with the logic in the code, it won't happen through usage
         if (this.Id != cell.RegionId) throw new InvalidOperationException("Cell does not have the same RegionId as the region.");
         Cells.Add(cell);
     }
 }
-
-
-//Below here is AI generated code for solving this puzzle
-/*
-
-basic implementation of a Star Battle puzzle solver in C#.
-This example uses a backtracking algorithm to solve the puzzle:
-
-using System;
-
-class StarBattleSolver
-{
-static int N = 10; // Size of the grid
-static int[,] grid = new int[N, N]; // The puzzle grid
-static int starsPerRow = 2; // Number of stars per row and column
-
-static bool IsSafe(int row, int col)
-{
-    // Check row and column
-    for (int i = 0; i < N; i++)
-    {
-        if (grid[row, i] == 1 || grid[i, col] == 1)
-            return false;
-    }
-
-    // Check surrounding cells
-    for (int i = -1; i <= 1; i++)
-    {
-        for (int j = -1; j <= 1; j++)
-        {
-            int newRow = row + i;
-            int newCol = col + j;
-            if (newRow >= 0 && newRow < N && newCol >= 0 && newCol < N && grid[newRow, newCol] == 1)
-                return false;
-        }
-    }
-
-    return true;
-}
-
-static bool Solve(int row, int col, int starsPlaced)
-{
-    if (starsPlaced == N * starsPerRow)
-        return true;
-
-    if (col == N)
-    {
-        row++;
-        col = 0;
-    }
-
-    if (row == N)
-        return false;
-
-    if (IsSafe(row, col))
-    {
-        grid[row, col] = 1;
-        if (Solve(row, col + 1, starsPlaced + 1))
-            return true;
-        grid[row, col] = 0;
-    }
-
-    return Solve(row, col + 1, starsPlaced);
-}
-
-static void PrintGrid()
-{
-    for (int i = 0; i < N; i++)
-    {
-        for (int j = 0; j < N; j++)
-        {
-            Console.Write(grid[i, j] == 1 ? "*" : ".");
-        }
-        Console.WriteLine();
-    }
-}
-
-public static void Main()
-{
-    if (Solve(0, 0, 0))
-        PrintGrid();
-    else
-        Console.WriteLine("No solution found.");
-}
-}
-
-*/
-
-
-
-
-
-
