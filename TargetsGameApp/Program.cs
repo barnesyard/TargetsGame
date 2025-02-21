@@ -162,6 +162,7 @@ public class Cell
     }
 
     public Coordinate GetCoordinate()
+
     {
         return this.Coordinate;
     }

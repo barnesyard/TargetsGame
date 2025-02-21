@@ -82,15 +82,15 @@ namespace TargetsGameApp
             // Create an array of ConsoleColor values that can be used for the regions
             ConsoleColor[] regionColors = [
                 ConsoleColor.DarkYellow,
-            ConsoleColor.Green,
-            ConsoleColor.Red,
-            ConsoleColor.Yellow,
-            ConsoleColor.Magenta,
-            ConsoleColor.Cyan,
-            ConsoleColor.DarkMagenta,
-            ConsoleColor.Gray,
-            ConsoleColor.DarkCyan,
-            ConsoleColor.Blue];
+                ConsoleColor.Green,
+                ConsoleColor.Red,
+                ConsoleColor.Yellow,
+                ConsoleColor.Magenta,
+                ConsoleColor.Cyan,
+                ConsoleColor.DarkMagenta,
+                ConsoleColor.Gray,
+                ConsoleColor.DarkCyan,
+                ConsoleColor.Blue];
 
             // Enable Unicode output
             Console.OutputEncoding = System.Text.Encoding.UTF8;
@@ -385,5 +385,4 @@ namespace TargetsGameApp
             return targetColumns;
         }
     }
-
 }
